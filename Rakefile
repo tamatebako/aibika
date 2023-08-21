@@ -1,14 +1,15 @@
 # -*- ruby -*-
 
-require "rubygems"
+require "bundler/gem_tasks"
+require "rubocop/rake_task"
 require "hoe"
 
 Hoe.plugin :minitest
 
-spec = Hoe.spec "ocra" do
-  developer "Lars Christensen", "larsch@belunktum.dk"
-  license "MIT"
-end
+RuboCop::RakeTask.new
+task default: %i[rubocop]
+
+
 
 spec.urls.each { |key, url| url.chomp! }
 
@@ -77,10 +78,6 @@ task :test_standalone => :standalone do
   ENV["TESTED_OCRA"] = "ocrasa.rb"
   system("rake test")
   ENV["TESTED_OCRA"] = nil
-end
-
-task :release_docs => :redocs do
-  sh "pscp -r doc/* larsch@ocra.rubyforge.org:/var/www/gforge-projects/ocra"
 end
 
 # vim: syntax=Ruby
