@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "lib/aibika"
+require_relative "lib/ocra"
 
 Gem::Specification.new do |spec|
   spec.name          = "aibika"
@@ -13,22 +13,22 @@ Gem::Specification.new do |spec|
   spec.description = <<~SUM
   Aibika packages a Ruby application into a single executable for the Windows
   platform.
-  
+
   The resulting executable is self-extracting and self-running, containing:
-  
+
   * the Ruby interpreter;
   * packaged Ruby source code; and
   * any additionally needed Ruby libraries or DLLs.
-  
+
   NOTE: Aibika was created from the Metanorma-enhanced fork of the
   https://github.com/larsch/ocra[One-click Ruby Application "Ocra" packager].
   The first Aibkika version was launched as 1.3.12. The last version of Ocra
   was 1.3.11 from 2020.
-  
+
   NOTE: Aibika is considered a temporary solution to the full-fledged
   functionality of https://github.com/tamatebako/tebako[Tebako], which provides a
   user-space mounted-disk experience with minimal intervention.
-  
+
     SUM
   spec.homepage = "https://github.com/tamatebako/aibika"
   spec.required_ruby_version = ">= 2.7.0"
@@ -51,6 +51,4 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = %w[bin lib samples share src]
 
-  spec.add_dependency "thor", "~> 1.2"
-  spec.add_dependency "yaml", "~> 0.2.1"
 end
