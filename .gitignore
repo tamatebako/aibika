@@ -1,8 +1,7 @@
 *.o
 *.exe
-bin/ocrasa.rb
 pkg
 README.txt
-ocrasa-*.zip
 .vscode/
 
+Gemfile.lock

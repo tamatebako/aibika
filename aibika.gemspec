@@ -45,10 +45,8 @@ Gem::Specification.new do |spec|
     end
   end
 
-  spec.files << "version.txt"
-
-  spec.bindir = "exe"
-  spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
+  spec.bindir = "bin"
+  spec.executables = spec.files.grep(%r{\Abin/}) { |f| File.basename(f) }
   spec.require_paths = %w[bin lib samples share src]
 
 end

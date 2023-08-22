@@ -3,9 +3,10 @@ require "rubocop/rake_task"
 require "minitest/test_task"
 
 RuboCop::RakeTask.new
-task default: %i[rubocop]
-
 Minitest::TestTask.create
+
+task default: %i[test]
+
 
 task :build_stub do
   sh "mingw32-make -C src"
