@@ -1,1 +1,3 @@
-hello_world = "Hello, World!"
+# frozen_string_literal: true
+
+'Hello, World!'

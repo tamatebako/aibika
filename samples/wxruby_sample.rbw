@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rubygems'
 require 'wx'
 
@@ -5,8 +7,8 @@ require 'wx'
 class MyMainWindow < Wx::Frame
   MY_BUTTON_ID = 1001
   def initialize
-    super(nil, -1, "AIBIKA wxWidgets sample application")
-    @button = Wx::Button.new(self, MY_BUTTON_ID, "AIBIKA Sample")
+    super(nil, -1, 'AIBIKA wxWidgets sample application')
+    @button = Wx::Button.new(self, MY_BUTTON_ID, 'AIBIKA Sample')
     evt_button(MY_BUTTON_ID) { close }
   end
 end

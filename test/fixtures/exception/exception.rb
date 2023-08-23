@@ -1,1 +1,3 @@
-raise "error"
+# frozen_string_literal: true
+
+raise 'error'

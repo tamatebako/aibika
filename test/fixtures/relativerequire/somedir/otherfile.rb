@@ -1,1 +1,3 @@
-OtherConst = 43212
+# frozen_string_literal: true
+
+OtherConst = 43_212
