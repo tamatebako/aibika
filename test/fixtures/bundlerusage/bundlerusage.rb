@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rubygems'
 # https://github.com/rubygems/bundler/issues/6937
 # however, 'bundler/setup' causes a problem per se
@@ -11,4 +13,3 @@ require 'rake'
 
 # Just make sure the constant exists
 Rake
-  

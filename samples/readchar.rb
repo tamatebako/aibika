@@ -1,2 +1,4 @@
+# frozen_string_literal: true
+
 exit if defined?(Aibika)
-STDIN.readchar
+$stdin.readchar

@@ -1,3 +1,5 @@
-$:.unshift File.dirname(__FILE__)
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift File.dirname(__FILE__)
 autoload :Foo, 'foo'
-Foo if __FILE__ == $0
+Foo if __FILE__ == $PROGRAM_NAME

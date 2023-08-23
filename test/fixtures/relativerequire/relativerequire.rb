@@ -1,4 +1,6 @@
-$:.unshift File.dirname(__FILE__)
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift File.dirname(__FILE__)
 require 'somedir/somefile'
 require 'SomeDir/otherfile'
-exit 160 if __FILE__ == $0 and defined?(SomeConst) and defined?(OtherConst)
+exit 160 if (__FILE__ == $PROGRAM_NAME) && defined?(SomeConst) && defined?(OtherConst)

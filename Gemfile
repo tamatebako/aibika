@@ -1,8 +1,10 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
 
 gemspec
 
-gem "hoe"
-gem "minitest"
-gem "rubocop"
-gem "rspec"
+gem 'hoe'
+gem 'minitest'
+gem 'rspec'
+gem 'rubocop'

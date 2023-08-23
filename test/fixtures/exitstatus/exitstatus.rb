@@ -1,1 +1,3 @@
-exit 167 if __FILE__ == $0
+# frozen_string_literal: true
+
+exit 167 if __FILE__ == $PROGRAM_NAME
