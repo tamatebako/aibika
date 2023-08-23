@@ -9,9 +9,9 @@ Minitest::TestTask.create
 
 task default: %i[test]
 
-
+desc 'Build Aibika stubs'
 task :build_stub do
-  sh 'mingw32-make -C src'
+  system('mingw32-make -C src')
   cp 'src/stub.exe', 'share/aibika/stub.exe'
   cp 'src/stubw.exe', 'share/aibika/stubw.exe'
   cp 'src/edicon.exe', 'share/aibika/edicon.exe'
@@ -26,5 +26,5 @@ task test: :build_stub
 task :clean do
   rm_f Dir['{bin,samples}/*.exe']
   rm_f Dir['share/aibika/{stub,stubw,edicon}.exe']
-  sh 'mingw32-make -C src clean'
+  system('mingw32-make -C src clean')
 end
