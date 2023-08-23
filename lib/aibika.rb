@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
-class Aibika
-  VERSION = '1.3.12'
+require_relative 'aibika/version'
+
+module Aibika
+  def self.aibika_lib_dir
+    __dir__
+  end
 end
