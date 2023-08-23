@@ -59,7 +59,7 @@ TCHAR ImageFileName[MAX_PATH];
 #define FATAL(...) { \
    TCHAR TextBuffer[1024]; \
    _sntprintf(TextBuffer, 1024, __VA_ARGS__); \
-   MessageBox(NULL, TextBuffer, _T("OCRA"), MB_OK | MB_ICONWARNING); \
+   MessageBox(NULL, TextBuffer, _T("AIBIKA"), MB_OK | MB_ICONWARNING); \
    }
 #endif
 
@@ -184,7 +184,7 @@ void MarkForDeletion(LPTSTR path)
 {
    TCHAR marker[MAX_PATH];
    lstrcpy(marker, path);
-   lstrcat(marker, ".ocra-delete-me");
+   lstrcat(marker, ".aibika-delete-me");
    HANDLE h = CreateFile(marker, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
    CloseHandle(h);
 }
@@ -204,21 +204,21 @@ void DeleteOldFiles()
       lstrcat(path, "\\");
       len += 1;
    }
-   lstrcat(path, "*.ocra-delete-me");
+   lstrcat(path, "*.aibika-delete-me");
    WIN32_FIND_DATA findData;
    HANDLE handle = FindFirstFile(path, &findData);
    path[len] = 0;
    if (handle == INVALID_HANDLE_VALUE)
       return;
    do {
-      TCHAR ocraPath[MAX_PATH];
-      lstrcpy(ocraPath, path);
-      lstrcat(ocraPath, findData.cFileName);
-      DeleteFile(ocraPath);
-      DWORD len = lstrlen(ocraPath);
-      len -= lstrlen(".ocra-delete-me");
-      ocraPath[len] = 0;
-      DeleteRecursivelyNowOrLater(ocraPath);
+      TCHAR aibikaPath[MAX_PATH];
+      lstrcpy(aibikaPath, path);
+      lstrcat(aibikaPath, findData.cFileName);
+      DeleteFile(aibikaPath);
+      DWORD len = lstrlen(aibikaPath);
+      len -= lstrlen(".aibika-delete-me");
+      aibikaPath[len] = 0;
+      DeleteRecursivelyNowOrLater(aibikaPath);
    } while (FindNextFile(handle, &findData));
    FindClose(handle);
 }
@@ -247,7 +247,7 @@ BOOL OpCreateInstDirectory(LPVOID* p)
       GetTempPath(MAX_PATH, TempPath);
    }
 
-   UINT tempResult = GetTempFileName(TempPath, _T("ocrastub"), 0, InstDir);
+   UINT tempResult = GetTempFileName(TempPath, _T("aibikastub"), 0, InstDir);
    if (tempResult == 0u)
    {
       FATAL("Failed to get temp file name.");
@@ -284,7 +284,7 @@ int CALLBACK _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
    FindExeDir(InstDir);
 
    /* Set up environment */
-   SetEnvironmentVariable(_T("OCRA_EXECUTABLE"), ImageFileName);
+   SetEnvironmentVariable(_T("AIBIKA_EXECUTABLE"), ImageFileName);
 
    SetConsoleCtrlHandler(&ConsoleHandleRoutine, TRUE);
 
@@ -619,7 +619,7 @@ BOOL OpPostCreateProcess(LPVOID* p)
 BOOL OpEnableDebugMode(LPVOID* p)
 {
    DebugModeEnabled = TRUE;
-   DEBUG("Ocra stub running in debug mode");
+   DEBUG("Aibika stub running in debug mode");
    return TRUE;
 }
 
