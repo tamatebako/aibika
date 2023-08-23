@@ -57,7 +57,7 @@ gem install aibika
 
 == Synopsis
 
-=== Building an executable:
+=== Building an executable
 
 [source,sh]
 ----
@@ -68,21 +68,21 @@ Will package `script.rb`, the Ruby interpreter and all
 dependencies (gems and DLLs) into an executable named
 `script.exe`.
 
-=== Command line:
+=== Command line
 
 [source,sh]
 ----
 $ aibika [options] script.rb [<other files> ...] [-- <script arguments> ...]
 ----
 
-=== Options:
+=== Options
 
 [source,sh]
 ----
 $ aibika --help
 ----
 
-Ocra options:
+Aibika options:
 
 [source]
 ----
@@ -158,13 +158,13 @@ Executable options:
 ----
 
 
-=== Compilation:
+=== Compilation
 
-* Aibikawill load your script (using `Kernel#load`) and build
+* Aibika will load your script (using `Kernel#load`) and build
   the executable when it exits.
 
 * Your program should 'require' all necessary files when invoked without
-  arguments, so Aibikacan detect all dependencies.
+  arguments, so Aibika can detect all dependencies.
 
 * DLLs are detected automatically but only those located in your Ruby
   installation are included.
@@ -174,30 +174,30 @@ Executable options:
   up). Alternatively, use the `--console` or
   `--windows` options.
 
-=== Running your application:
+=== Running your application
 
-* The 'current working directory' is not changed by Aibikawhen running
+* The 'current working directory' is not changed by Aibika when running
   your application. You must change to the installation or temporary
   directory yourself. See also below.
 * When the application is running, the `OCRA_EXECUTABLE` environment
   variable points to the .exe (with full path).
 * The temporary location of the script can be obtained by inspected
   the `$0` variable.
-* Aibikadoes not set up the include path. Use `$:.unshift File.dirname($0)`
+* Aibika does not set up the include path. Use `$:.unshift File.dirname($0)`
   at the start of your script if you need to `require` additional source files
   from the same directory as your main script.
 
-=== Pitfalls:
+=== Pitfalls
 
 * Avoid modifying load paths at run time. Specify load paths using -I
-  or RUBYLIB if you must, but don't expect Aibikato preserve them for
-  runtime. Aibikamay pack sources into other directories than you
+  or `RUBYLIB` if you must, but don't expect Aibika to preserve them for
+  runtime. Aibika may pack sources into other directories than you
   expect.
 * If you use `.rbw` files or the `--windows` option, then check
-  that your application works with `rubyw.exe` before trying with OCRA.
-* Avoid absolute paths in your code and when invoking OCRA.
+  that your application works with `rubyw.exe` before trying with Aibika.
+* Avoid absolute paths in your code and when invoking Aibika.
 
-== REQUIREMENTS:
+== Requirements
 
 * Windows
 * Working Ruby installation.
@@ -210,18 +210,18 @@ nothing but a working Ruby installation on Windows.
 
 == Technical details
 
-Aibikafirst runs the target script in order to detect any files that
+Aibika first runs the target script in order to detect any files that
 are loaded and used at runtime (Using `Kernel#require` and
 `Kernel#load`).
 
-Aibikaembeds everything needed to run a Ruby script into a single
+Aibika embeds everything needed to run a Ruby script into a single
 executable file. The file contains the .exe stub which is compiled
 from C-code, and a custom opcode format containing instructions to
 create directories, save files, set environment variables and run
-programs. The Aibikascript generates this executable and the
+programs. The Aibika script generates this executable and the
 instructions to be run when it is launched.
 
-When executed, the Aibikastub extracts the Ruby interpreter and your
+When executed, the Aibika stub extracts the Ruby interpreter and your
 scripts into a temporary directory. The directory will contains the
 same directory layout as your Ruby installation. The source files for
 your application will be put in the 'src' subdirectory.
@@ -229,45 +229,45 @@ your application will be put in the 'src' subdirectory.
 === Libraries
 
 Any code that is loaded through `Kernel#require` when your
-script is executed will be included in the OCRA
+script is executed will be included in the Aibika
 executable. Conditionally loaded code will not be loaded and included
-in the executable unless the code is actually run when Aibikainvokes
-your script. Otherwise, Aibikawon't know about it and will not include
+in the executable unless the code is actually run when Aibika invokes
+your script. Otherwise, Aibika won't know about it and will not include
 the source files.
 
 RubyGems are handled specially. Whenever a file from a Gem is
-detected, Aibikawill attempt to include all the required files from
+detected, Aibika will attempt to include all the required files from
 that specific Gem, expect some unlikely needed files such as readme's
 and other documentation. This behaviour can be controlled by using the
 `--gem-*` options. Behaviour can be changed for all gems or specific
 gems using `--gem-*=gemname`.
 
-Libraries found in non-standard path (for example, if you invoke OCRA
-with "ruby -I some/path") will be placed into the site dir
-(lib/ruby/site_ruby). Avoid changing `$LOAD_PATH` or
+Libraries found in non-standard path (for example, if you invoke Aibika
+with `ruby -I some/path`) will be placed into the site `dir`
+(`lib/ruby/site_ruby`). Avoid changing `$LOAD_PATH` or
 `$:` from your script to include paths outside your source
-tree, since Aibikamay place the files elsewhere when extracted into the
+tree, since Aibika may place the files elsewhere when extracted into the
 temporary directory.
 
 In case your script (or any of its dependencies) sets up autoloaded
-module using `Kernel#autoload`, Aibikawill automatically try to
+module using `Kernel#autoload`, Aibika will automatically try to
 load them to ensure that they are all included in the
 executable. Modules that doesn't exist will be ignored (a warning will
 be logged).
 
-Dynamic link libraries (`.dll` files, for example WxWidgets, or other
-source files) will be detected and included by OCRA.
+Dynamic link libraries (`.dll` files, for example `WxWidgets`, or other
+source files) will be detected and included by Aibika.
 
 === Including libraries non-automatically
 
 If an application or framework is complicated enough that it tends
-to confuse Ocra's automatic dependency resolution, then you can
+to confuse Aibika's automatic dependency resolution, then you can
 use other means to specify what needs to be packaged with your app.
 
 To disable automatic dependency resolution, use the `--no-dep-run`
-option; with it, Ocra will skip executing your program during the
+option; with it, Aibika will skip executing your program during the
 build process. This on the other hand requires using `--gem-full` option
-(see more below); otherwise Ocra will not include all the necessary
+(see more below); otherwise Aibika will not include all the necessary
 files for the gems.
 
 You will also probably need to use the `--add-all-core` option to
@@ -275,7 +275,7 @@ include the Ruby core libraries.
 
 If your app uses gems, then you can specify them in a
 Bundler Gemfile, then use the --gemfile
-option to supply it to Ocra. Ocra will automatically include all
+option to supply it to Aibika. Aibika will automatically include all
 gems specified, and all their dependencies.
 
 NOTE: This assumes that the gems are installed in your system,
@@ -301,8 +301,8 @@ integrate them with Bundler first.
 
 === Gem handling
 
-By default, Ocra includes all scripts that are loaded by your script
-when it is run before packaging. Ocra detects which gems are using and
+By default, Aibika includes all scripts that are loaded by your script
+when it is run before packaging. Aibika detects which gems are using and
 includes any additional non-script files from those gems, except
 trivial files such as C/C++ source code, object files, READMEs, unit
 tests, specs, etc.
@@ -325,15 +325,15 @@ to include all files for all required gems.
 To make your application start up quicker, or to allow it to
 keep files in its application directory between runs, or if
 you just want to make your program seem more like a "regular"
-Windows application, you can have Ocra generate an installer
+Windows application, you can have Aibika generate an installer
 for your app with the free Inno Setup software.
 
 You will first have to download and install Inno Setup 5 or
-later, and also add its directory to your PATH (so that Ocra
+later, and also add its directory to your `PATH` (so that Aibika
 can find the ISCC compiler program). Once you've done that,
-you can use the `--innosetup` option to Ocra to supply an
-Inno Setup script. Do not add any [Files] or [Dirs] sections
-to the script; Ocra will figure those out itself.
+you can use the `--innosetup` option to Aibika to supply an
+Inno Setup script. Do not add any `[Files]` or `[Dirs]` sections
+to the script; Aibika will figure those out itself.
 
 To continue the Rails example above, let's package the Rails 3
 app into an installer. Save the following as `someapp.iss`:
@@ -352,7 +352,7 @@ Name: "{group}\SomeApp"; Filename: "{app}\someapp.exe"
 Name: "{group}\Uninstall SomeApp"; Filename: "{uninstallexe}"
 ----
 
-Then, run Ocra with this command:
+Then run this command:
 
 [source,sh]
 ----
@@ -366,17 +366,17 @@ into the Output directory.
 
 === Environment variables
 
-Aibikaexecutables clear the `RUBYLIB` environment variable before your
+Aibika executables clear the `RUBYLIB` environment variable before your
 script is launched. This is done to ensure that your script does not
 use load paths from the end user's Ruby installation.
 
-Aibikaexecutables set the `RUBYOPT` environment variable to the value it
-had when you invoked OCRA. For example, if you had `"RUBYOPT=rubygems"`
-on your build PC, Aibikaensures that it is also set on PC's running the
+Aibika executables set the `RUBYOPT` environment variable to the value it
+had when you invoked Aibika. For example, if you had `"RUBYOPT=rubygems"`
+on your build PC, Aibika ensures that it is also set on PC's running the
 executables.
 
-Aibikaexecutables set OCRA_EXECUTABLE to the full path of the
-executable, for example
+Aibika executables set `OCRA_EXECUTABLE` to the full path of the
+executable, for example:
 
 [source,rb]
 ----
@@ -385,7 +385,7 @@ ENV["OCRA_EXECUTABLE"] # => C:\Program Files\MyApp\MyApp.exe
 
 === Working directory
 
-The Aibikaexecutable does not change the working directory when it is
+The Aibika executable does not change the working directory when it is
 launched, unless you use the `--chdir-first` option.
 
 You should not assume that the current working directory when invoking
@@ -426,20 +426,20 @@ $LOAD_PATH.unshift File.join(File.dirname($0), 'path/to/script')
 
 === Detecting
 
-You can detect whether Aibikais currently building your script by
-looking for the 'Ocra' constant. If it is defined, Aibikais currently
+You can detect whether Aibika is currently building your script by
+looking for the 'Aibika' constant. If it is defined, Aibika is currently
 building the executable from your script. For example, you can use
 this to avoid opening a GUI window when compiling executables:
 
 [source,rb]
 ----
 app = MyApp.new
-app.main_loop unless defined?(Ocra)
+app.main_loop unless defined?(Aibika)
 ----
 
 === Additional files and resources
 
-You can add additional files to the Aibikaexecutable (for example
+You can add additional files to the Aibika executable (for example
 images) by appending them to the command line. They should be placed
 in the source directory with your main script (or a subdirectory).
 
@@ -452,16 +452,17 @@ This will create the following layout in the temporary directory when
 your program is executed:
 
 ----
-    src/mainscript.rb
-    src/someimage.jpeg
-    src/docs/document.txt
+src/mainscript.rb
+src/someimage.jpeg
+src/docs/document.txt
 ----
 
 Both files, directories and glob patterns can be specified on the
 command line. Files will be added as-is. If a directory is specified,
-Aibikawill include all files found below that directory. Glob patterns
-(See `Dir.glob`) can be used to specify a specific set of files, for
-example:
+Aibika will include all files found below that directory.
+
+Glob patterns (See `Dir.glob`) can be used to specify a specific set of files,
+for example:
 
 [source,sh]
 ----
@@ -486,19 +487,19 @@ compile-time arguments.
 
 === Window/Console
 
-By default, Aibikabuilds console application from `.rb` files and
+By default, Aibika builds console application from `.rb` files and
 windowed applications (without console window) from `.rbw` files.
 
 Ruby on Windows provides two executables: `ruby.exe` is a console mode
 application and `rubyw.exe` is a windowed application which does not
 bring up a console window when launched using the Windows Explorer.
-By default, or if the `--console` option is used, Aibikawill
-use the console runtime (`ruby.exe`). Aibikawill automatically select the
+By default, or if the `--console` option is used, Aibika will
+use the console runtime (`ruby.exe`). Aibika will automatically select the
 windowed runtime when your script has the ".rbw" extension, or if you
 specify the `--windows` command line option.
 
 If your application works in console mode but not in windowed mode,
-first check if your script works without Aibikausing `rubyw.exe`. A
+first check if your script works without Aibika using `rubyw.exe`. A
 script that prints to standard output (using puts, print etc.) will
 eventually cause an exception when run with `rubyw.exe` (when the IO
 buffers run full).
