@@ -2,10 +2,10 @@ History.txt
 Manifest.txt
 README.adoc
 Rakefile
-bin/ocra
-share/ocra/lzma.exe
-share/ocra/stub.exe
-share/ocra/stubw.exe
-share/ocra/edicon.exe
-test/test_ocra.rb
-lib/ocra.rb
+bin/aibika
+share/aibika/lzma.exe
+share/aibika/stub.exe
+share/aibika/stubw.exe
+share/aibika/edicon.exe
+test/test_aibika.rb
+lib/aibika.rb

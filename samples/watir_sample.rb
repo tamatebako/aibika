@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 require "watir"
-exit if defined?(Ocra)
+exit if defined?(Aibika)
 
 test_site = "http://www.google.com"
 

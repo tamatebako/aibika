@@ -179,7 +179,7 @@ Executable options:
 * The 'current working directory' is not changed by Aibika when running
   your application. You must change to the installation or temporary
   directory yourself. See also below.
-* When the application is running, the `OCRA_EXECUTABLE` environment
+* When the application is running, the `AIBIKA_EXECUTABLE` environment
   variable points to the .exe (with full path).
 * The temporary location of the script can be obtained by inspected
   the `$0` variable.
@@ -380,7 +380,7 @@ executable, for example:
 
 [source,rb]
 ----
-ENV["OCRA_EXECUTABLE"] # => C:\Program Files\MyApp\MyApp.exe
+ENV["AIBIKA_EXECUTABLE"] # => C:\Program Files\MyApp\MyApp.exe
 ----
 
 === Working directory
@@ -555,4 +555,3 @@ In the manufacturing of Japanese paper, mucus extracted from the root of aibika
 is used to uniformize the spread of fibers. Without this mucus in the
 solution, fibers will quickly get excluded from the solution, resulting in
 fibers not scattered evenly.
-

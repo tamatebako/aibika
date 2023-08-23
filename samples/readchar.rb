@@ -1,2 +1,2 @@
-exit if defined?(Ocra)
+exit if defined?(Aibika)
 STDIN.readchar

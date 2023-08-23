@@ -16,17 +16,17 @@ end
 
 include FileUtils
 
-class TestOcra < Minitest::Test
+class TestAibika < Minitest::Test
 
-  # Default arguments for invoking OCRA when running tests.
+  # Default arguments for invoking AIBIKA when running tests.
   DefaultArgs = [ '--no-lzma', '--verbose' ]
-  DefaultArgs << "--quiet" unless ENV["OCRA_VERBOSE_TEST"]
+  DefaultArgs << "--quiet" unless ENV["AIBIKA_VERBOSE_TEST"]
 
-  # Name of the tested ocra script.
-  TESTED_OCRA = ENV['TESTED_OCRA'] || 'ocra'
+  # Name of the tested aibika script.
+  TESTED_AIBIKA = ENV['TESTED_AIBIKA'] || 'aibika'
 
-  # Root of OCRA.
-  OcraRoot = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+  # Root of AIBIKA.
+  AibikaRoot = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 
   # Path to test fixtures.
   FixturePath = File.expand_path(File.join(File.dirname(__FILE__), 'fixtures'))
@@ -43,16 +43,16 @@ class TestOcra < Minitest::Test
   end
 
   def system(*args)
-    puts args.join(" ") if ENV["OCRA_VERBOSE_TEST"]
+    puts args.join(" ") if ENV["AIBIKA_VERBOSE_TEST"]
     Kernel.system(*args)
   end
 
-  attr_reader :ocra
+  attr_reader :aibika
 
   def initialize(*args)
     super(*args)
     @testnum = 0
-    @ocra = File.expand_path(File.join(File.dirname(__FILE__), '..', 'bin', TESTED_OCRA))
+    @aibika = File.expand_path(File.join(File.dirname(__FILE__), '..', 'bin', TESTED_AIBIKA))
     ENV['RUBYOPT'] = ""
   end
 
@@ -88,7 +88,7 @@ class TestOcra < Minitest::Test
   end
 
   def with_tmpdir(files = [], path = nil)
-    tempdirname = path || File.join(ENV['TEMP'], ".ocratest-#{$$}-#{rand 2**32}").tr('\\','/')
+    tempdirname = path || File.join(ENV['TEMP'], ".aibikatest-#{$$}-#{rand 2**32}").tr('\\','/')
     mkdir_p tempdirname
     begin
       cp files, tempdirname
@@ -126,7 +126,7 @@ class TestOcra < Minitest::Test
   def test_helloworld
     with_fixture 'helloworld' do
       each_path_combo "helloworld.rb" do |script|
-        assert system("ruby", ocra, script, *DefaultArgs)
+        assert system("ruby", aibika, script, *DefaultArgs)
         assert File.exist?("helloworld.exe")
         pristine_env "helloworld.exe" do
           assert system("helloworld.exe")
@@ -138,7 +138,7 @@ class TestOcra < Minitest::Test
   # Should be able to build executables with LZMA compression
   def test_lzma
     with_fixture 'helloworld' do
-      assert system("ruby", ocra, "helloworld.rb", "--quiet", "--lzma")
+      assert system("ruby", aibika, "helloworld.rb", "--quiet", "--lzma")
       assert File.exist?("helloworld.exe")
       pristine_env "helloworld.exe" do
         assert system("helloworld.exe")
@@ -150,8 +150,8 @@ class TestOcra < Minitest::Test
   # directory.
   def test_writefile
     with_fixture 'writefile' do
-      assert system("ruby", ocra, "writefile.rb", *DefaultArgs)
-      assert File.exist?("output.txt") # Make sure ocra ran the script during build
+      assert system("ruby", aibika, "writefile.rb", *DefaultArgs)
+      assert File.exist?("output.txt") # Make sure aibika ran the script during build
       pristine_env "writefile.exe" do
         assert File.exist?("writefile.exe")
         assert system("writefile.exe")
@@ -161,11 +161,11 @@ class TestOcra < Minitest::Test
     end
   end
 
-  # With --no-dep-run, ocra should not run script during build
+  # With --no-dep-run, aibika should not run script during build
   def test_nodeprun
     with_fixture 'writefile' do
       File.delete("output.txt") if File.exist?("output.txt")
-      assert system("ruby", ocra, "writefile.rb", *(DefaultArgs + ["--no-dep-run"]))
+      assert system("ruby", aibika, "writefile.rb", *(DefaultArgs + ["--no-dep-run"]))
       assert !File.exist?("output.txt")
       pristine_env "writefile.exe" do
         assert File.exist?("writefile.exe")
@@ -180,7 +180,7 @@ class TestOcra < Minitest::Test
   # to use ruby standard libraries (i.e. cgi)
   def test_rubycoreincl
     with_fixture 'rubycoreincl' do
-      assert system("ruby", ocra, "rubycoreincl.rb", *(DefaultArgs + ["--no-dep-run", "--add-all-core"]))
+      assert system("ruby", aibika, "rubycoreincl.rb", *(DefaultArgs + ["--no-dep-run", "--add-all-core"]))
       pristine_env "rubycoreincl.exe" do
         assert File.exist?("rubycoreincl.exe")
         assert system("rubycoreincl.exe")
@@ -194,7 +194,7 @@ class TestOcra < Minitest::Test
   # be automatically included and usable in packaged app
   def test_gemfile
     with_fixture 'bundlerusage' do
-      assert system("ruby", ocra, "bundlerusage.rb", "Gemfile", *(DefaultArgs + ["--no-dep-run", "--add-all-core", "--gemfile", "Gemfile", "--gem-all"]))
+      assert system("ruby", aibika, "bundlerusage.rb", "Gemfile", *(DefaultArgs + ["--no-dep-run", "--add-all-core", "--gemfile", "Gemfile", "--gem-all"]))
       pristine_env "bundlerusage.exe" do
         assert system("bundlerusage.exe")
       end
@@ -204,11 +204,11 @@ class TestOcra < Minitest::Test
   # With --debug-extract option, exe should unpack to local directory and leave it in place
   def test_debug_extract
     with_fixture 'helloworld' do
-      assert system("ruby", ocra, "helloworld.rb", *(DefaultArgs + ["--debug-extract"]))
+      assert system("ruby", aibika, "helloworld.rb", *(DefaultArgs + ["--debug-extract"]))
       pristine_env "helloworld.exe" do
-        assert_equal 0, Dir["ocr*"].size
+        assert_equal 0, Dir["aib*"].size
         assert system("helloworld.exe")
-        assert_equal 1, Dir["ocr*"].size
+        assert_equal 1, Dir["aib*"].size
       end
     end
   end
@@ -217,7 +217,7 @@ class TestOcra < Minitest::Test
   def test_output_option
     with_fixture 'helloworld' do
       File.delete("helloworld.exe") if File.exist?("helloworld.exe")
-      assert system("ruby", ocra, "helloworld.rb", *(DefaultArgs + ["--output", "goodbyeworld.exe"]))
+      assert system("ruby", aibika, "helloworld.rb", *(DefaultArgs + ["--output", "goodbyeworld.exe"]))
       assert !File.exist?("helloworld.exe")
       assert File.exist?("goodbyeworld.exe")
     end
@@ -226,7 +226,7 @@ class TestOcra < Minitest::Test
   # Test that we can specify a directory to be recursively included
   def test_directory_on_cmd_line
     with_fixture 'subdir' do
-      assert system("ruby", ocra, "subdir.rb", "a", *DefaultArgs)
+      assert system("ruby", aibika, "subdir.rb", "a", *DefaultArgs)
       pristine_env "subdir.exe" do
         assert system("subdir.exe")
       end
@@ -236,7 +236,7 @@ class TestOcra < Minitest::Test
   # Test that scripts can exit with a specific exit status code.
   def test_exitstatus
     with_fixture 'exitstatus' do
-      assert system("ruby", ocra, "exitstatus.rb", *DefaultArgs)
+      assert system("ruby", aibika, "exitstatus.rb", *DefaultArgs)
       pristine_env "exitstatus.exe" do
         system("exitstatus.exe")
         assert_equal 167, $?.exitstatus
@@ -247,7 +247,7 @@ class TestOcra < Minitest::Test
   # Test that arguments are passed correctly to scripts.
   def test_arguments1
     with_fixture 'arguments' do
-      assert system("ruby", ocra, "arguments.rb", *DefaultArgs)
+      assert system("ruby", aibika, "arguments.rb", *DefaultArgs)
       assert File.exist?("arguments.exe")
       pristine_env "arguments.exe" do
         system("arguments.exe foo \"bar baz \\\"quote\\\"\"")
@@ -261,7 +261,7 @@ class TestOcra < Minitest::Test
   def test_arguments2
     with_fixture 'arguments' do
       args = DefaultArgs + ["--", "foo", "bar baz \"quote\"" ]
-      assert system("ruby", ocra, "arguments.rb", *args)
+      assert system("ruby", aibika, "arguments.rb", *args)
       assert File.exist?("arguments.exe")
       pristine_env "arguments.exe" do
         system("arguments.exe")
@@ -275,7 +275,7 @@ class TestOcra < Minitest::Test
   def test_arguments3
     with_fixture 'arguments' do
       args = DefaultArgs + ["--", "foo"]
-      assert system("ruby", ocra, "arguments.rb", *args)
+      assert system("ruby", aibika, "arguments.rb", *args)
       assert File.exist?("arguments.exe")
       pristine_env "arguments.exe" do
         system("arguments.exe \"bar baz \\\"quote\\\"\"")
@@ -288,7 +288,7 @@ class TestOcra < Minitest::Test
   def test_buildarg
     with_fixture "buildarg" do
       args = DefaultArgs + [ "--", "--some-option" ]
-      assert system("ruby", ocra, "buildarg.rb", *args)
+      assert system("ruby", aibika, "buildarg.rb", *args)
       assert File.exist?("buildarg.exe")
       pristine_env "buildarg.exe" do
         assert system("buildarg.exe")
@@ -300,7 +300,7 @@ class TestOcra < Minitest::Test
   # file.
   def test_stdout_redir
     with_fixture 'stdoutredir' do
-      assert system("ruby", ocra, "stdoutredir.rb", *DefaultArgs)
+      assert system("ruby", aibika, "stdoutredir.rb", *DefaultArgs)
       assert File.exist?("stdoutredir.exe")
       pristine_env "stdoutredir.exe" do
         system("stdoutredir.exe > output.txt")
@@ -314,7 +314,7 @@ class TestOcra < Minitest::Test
   # file.
   def test_stdin_redir
     with_fixture 'stdinredir' do
-      assert system("ruby", ocra, "stdinredir.rb", *DefaultArgs)
+      assert system("ruby", aibika, "stdinredir.rb", *DefaultArgs)
       assert File.exist?("stdinredir.exe")
       # Kernel.system("ruby -e \"system 'stdinredir.exe<input.txt';p $?\"")
       pristine_env "stdinredir.exe", "input.txt" do
@@ -336,7 +336,7 @@ class TestOcra < Minitest::Test
     end
 
     with_fixture 'gdbmdll' do
-      assert system("ruby", ocra, "gdbmdll.rb", *args)
+      assert system("ruby", aibika, "gdbmdll.rb", *args)
       with_env 'PATH' => '.' do
         pristine_env "gdbmdll.exe" do
           system("gdbmdll.exe")
@@ -351,7 +351,7 @@ class TestOcra < Minitest::Test
   # executable.
   def test_relative_require
     with_fixture 'relativerequire' do
-      assert system("ruby", ocra, "relativerequire.rb", *DefaultArgs)
+      assert system("ruby", aibika, "relativerequire.rb", *DefaultArgs)
       assert File.exist?("relativerequire.exe")
       pristine_env "relativerequire.exe" do
         system("relativerequire.exe")
@@ -361,11 +361,11 @@ class TestOcra < Minitest::Test
   end
 
   # Test that autoloaded files which are not actually loaded while
-  # running the script through Ocra are included in the resulting
+  # running the script through Aibika are included in the resulting
   # executable.
   def test_autoload
     with_fixture 'autoload' do
-      assert system("ruby", ocra, "autoload.rb", *DefaultArgs)
+      assert system("ruby", aibika, "autoload.rb", *DefaultArgs)
       assert File.exist?("autoload.exe")
       pristine_env "autoload.exe" do
         assert system("autoload.exe")
@@ -374,12 +374,12 @@ class TestOcra < Minitest::Test
   end
 
   # Test that autoload statement which point to non-existing files are
-  # ignored by Ocra (a warning may be logged).
+  # ignored by Aibika (a warning may be logged).
   def test_autoload_missing
     with_fixture 'autoloadmissing' do
       args = DefaultArgs.dup
       args.push '--no-warnings'
-      assert system("ruby", ocra, "autoloadmissing.rb", *args)
+      assert system("ruby", aibika, "autoloadmissing.rb", *args)
       assert File.exist?("autoloadmissing.exe")
       pristine_env "autoloadmissing.exe" do
         assert system("autoloadmissing.exe")
@@ -387,10 +387,10 @@ class TestOcra < Minitest::Test
     end
   end
 
-  # Test that Ocra picks up autoload statement nested in modules.
+  # Test that Aibika picks up autoload statement nested in modules.
   def test_autoload_nested
     with_fixture 'autoloadnested' do
-      assert system("ruby", ocra, "autoloadnested.rb", *DefaultArgs)
+      assert system("ruby", aibika, "autoloadnested.rb", *DefaultArgs)
       assert File.exist?("autoloadnested.exe")
       pristine_env "autoloadnested.exe" do
         assert system("autoloadnested.exe")
@@ -403,7 +403,7 @@ class TestOcra < Minitest::Test
   def test_relative_require_chdir_path
     with_fixture "relloadpath" do
       each_path_combo "bin/chdir1.rb" do |script|
-        assert system('ruby', ocra, script, *DefaultArgs)
+        assert system('ruby', aibika, script, *DefaultArgs)
         assert File.exist?('chdir1.exe')
         pristine_env "chdir1.exe" do
           assert system('chdir1.exe')
@@ -417,7 +417,7 @@ class TestOcra < Minitest::Test
   def test_relative_require_chdir_dotpath
     with_fixture "relloadpath" do
       each_path_combo "bin/chdir2.rb" do |script|
-        assert system('ruby', ocra, script, *DefaultArgs)
+        assert system('ruby', aibika, script, *DefaultArgs)
         assert File.exist?('chdir2.exe')
         pristine_env "chdir2.exe" do
           assert system('chdir2.exe')
@@ -427,12 +427,12 @@ class TestOcra < Minitest::Test
   end
 
   # Should pick up files from relative load paths specified using the
-  # -I option when invoking Ocra, and invoking from same directory as
+  # -I option when invoking Aibika, and invoking from same directory as
   # script.
   def test_relative_require_i
     with_fixture 'relloadpath' do
       each_path_combo "bin/external.rb", "lib", "bin/sub" do |script, *loadpaths|
-        assert system('ruby', '-I', loadpaths[0], '-I', loadpaths[1], ocra, script, *DefaultArgs)
+        assert system('ruby', '-I', loadpaths[0], '-I', loadpaths[1], aibika, script, *DefaultArgs)
         assert File.exist?('external.exe')
         pristine_env "external.exe" do
           assert system('external.exe')
@@ -447,7 +447,7 @@ class TestOcra < Minitest::Test
     with_fixture 'relloadpath' do
       each_path_combo "bin/external.rb", "lib", "bin/sub" do |script, *loadpaths|
         with_env 'RUBYLIB' => loadpaths.join(';') do
-          assert system('ruby', ocra, script, *DefaultArgs)
+          assert system('ruby', aibika, script, *DefaultArgs)
         end
         assert File.exist?('external.exe')
         pristine_env "external.exe" do
@@ -462,7 +462,7 @@ class TestOcra < Minitest::Test
   def test_loadpath_mangling_dirname
     with_fixture 'relloadpath' do
       each_path_combo "bin/loadpath0.rb" do |script|
-        assert system('ruby', ocra, script, *DefaultArgs)
+        assert system('ruby', aibika, script, *DefaultArgs)
         assert File.exist?('loadpath0.exe')
         pristine_env "loadpath0.exe" do
           assert system('loadpath0.exe')
@@ -476,7 +476,7 @@ class TestOcra < Minitest::Test
   def test_loadpath_mangling_path
     with_fixture 'relloadpath' do
       each_path_combo "bin/loadpath1.rb" do |script|
-        assert system('ruby', ocra, script, *DefaultArgs)
+        assert system('ruby', aibika, script, *DefaultArgs)
         assert File.exist?('loadpath1.exe')
         pristine_env "loadpath1.exe" do
           assert system('loadpath1.exe')
@@ -490,7 +490,7 @@ class TestOcra < Minitest::Test
   def test_loadpath_mangling_dotpath
     with_fixture 'relloadpath' do
       each_path_combo "bin/loadpath2.rb" do |script|
-        assert system('ruby', ocra, script, *DefaultArgs)
+        assert system('ruby', aibika, script, *DefaultArgs)
         assert File.exist?('loadpath2.exe')
         pristine_env "loadpath2.exe" do
           assert system('loadpath2.exe')
@@ -504,7 +504,7 @@ class TestOcra < Minitest::Test
   def test_loadpath_mangling_abspath
     with_fixture 'relloadpath' do
       each_path_combo "bin/loadpath3.rb" do |script|
-        assert system('ruby', ocra, script, *DefaultArgs)
+        assert system('ruby', aibika, script, *DefaultArgs)
         assert File.exist?('loadpath3.exe')
         pristine_env "loadpath3.exe" do
           assert system('loadpath3.exe')
@@ -513,16 +513,16 @@ class TestOcra < Minitest::Test
     end
   end
 
-  # Test that ocra.rb accepts --version and outputs the version number.
+  # Test that aibika.rb accepts --version and outputs the version number.
   def test_version
-    assert_match(/^Ocra \d+(\.\d)+(.(:?[a-z]+)?\d+)?\n$/, `ruby \"#{ocra}\" --version`)
+    assert_match(/^Aibika \d+(\.\d)+(.(:?[a-z]+)?\d+)?\n$/, `ruby \"#{aibika}\" --version`)
   end
 
-  # Test that ocra.rb accepts --icon.
+  # Test that aibika.rb accepts --icon.
   def test_icon
     with_fixture 'helloworld' do
-      icofile = File.join(OcraRoot, 'src', 'vit-ruby.ico')
-      assert system("ruby", ocra, '--icon', icofile, "helloworld.rb", *DefaultArgs)
+      icofile = File.join(AibikaRoot, 'src', 'vit-ruby.ico')
+      assert system("ruby", aibika, '--icon', icofile, "helloworld.rb", *DefaultArgs)
       assert File.exist?("helloworld.exe")
       pristine_env "helloworld.exe" do
         assert system("helloworld.exe")
@@ -534,7 +534,7 @@ class TestOcra < Minitest::Test
   # executable and used by the script.
   def test_resource
     with_fixture 'resource' do
-      assert system("ruby", ocra, "resource.rb", "resource.txt", "res/resource.txt", *DefaultArgs)
+      assert system("ruby", aibika, "resource.rb", "resource.txt", "res/resource.txt", *DefaultArgs)
       assert File.exist?("resource.exe")
       pristine_env "resource.exe" do
         assert system("resource.exe")
@@ -545,7 +545,7 @@ class TestOcra < Minitest::Test
   # Test that when exceptions are thrown, no executable will be built.
   def test_exception
     with_fixture 'exception' do
-      system("ruby \"#{ocra}\" exception.rb #{DefaultArgs.join(' ')} 2>NUL")
+      system("ruby \"#{aibika}\" exception.rb #{DefaultArgs.join(' ')} 2>NUL")
       assert $?.exitstatus != 0
       assert !File.exist?("exception.exe")
     end
@@ -555,7 +555,7 @@ class TestOcra < Minitest::Test
   def test_rubyopt
     with_fixture 'environment' do
       with_env "RUBYOPT" => "-rtime" do
-        assert system("ruby", ocra, "environment.rb", *DefaultArgs)
+        assert system("ruby", aibika, "environment.rb", *DefaultArgs)
         pristine_env "environment.exe" do
           assert system("environment.exe")
           env = Marshal.load(File.open("environment", "rb") { |f| f.read })
@@ -567,7 +567,7 @@ class TestOcra < Minitest::Test
 
   def test_exit
     with_fixture 'exit' do
-      assert system("ruby", ocra, "exit.rb", *DefaultArgs)
+      assert system("ruby", aibika, "exit.rb", *DefaultArgs)
       pristine_env "exit.exe" do
         assert File.exist?("exit.exe")
         assert system("exit.exe")
@@ -575,21 +575,21 @@ class TestOcra < Minitest::Test
     end
   end
 
-  def test_ocra_executable_env
+  def test_aibika_executable_env
     with_fixture 'environment' do
-      assert system("ruby", ocra, "environment.rb", *DefaultArgs)
+      assert system("ruby", aibika, "environment.rb", *DefaultArgs)
       pristine_env "environment.exe" do
         assert system("environment.exe")
         env = Marshal.load(File.open("environment", "rb") { |f| f.read })
         expected_path = File.expand_path("environment.exe").tr('/','\\')
-        assert_equal expected_path, env['OCRA_EXECUTABLE']
+        assert_equal expected_path, env['AIBIKA_EXECUTABLE']
       end
     end
   end
 
   def test_hierarchy
     with_fixture 'hierarchy' do
-      assert system("ruby", ocra, "hierarchy.rb", "assets/**/*", *DefaultArgs)
+      assert system("ruby", aibika, "hierarchy.rb", "assets/**/*", *DefaultArgs)
       pristine_env "hierarchy.exe" do
         assert system("hierarchy.exe")
       end
@@ -598,7 +598,7 @@ class TestOcra < Minitest::Test
 
   def test_temp_with_space
     with_fixture 'helloworld' do
-      assert system("ruby", ocra, "helloworld.rb", *DefaultArgs)
+      assert system("ruby", aibika, "helloworld.rb", *DefaultArgs)
       tempdir = File.expand_path("temporary directory")
       mkdir_p tempdir
       pristine_env "helloworld.exe" do
@@ -615,7 +615,7 @@ class TestOcra < Minitest::Test
     with_fixture "helloworld" do
       script_path = File.expand_path("helloworld.rb")
       with_tmpdir do
-        assert system("ruby", ocra, script_path, *DefaultArgs)
+        assert system("ruby", aibika, script_path, *DefaultArgs)
         assert File.exist?("helloworld.exe")
         pristine_env "helloworld.exe" do
           assert system("helloworld.exe")
@@ -628,7 +628,7 @@ class TestOcra < Minitest::Test
     with_fixture "helloworld" do
       mkdir "build"
       cd "build" do
-        assert system("ruby", ocra, File.expand_path("../helloworld.rb"), *DefaultArgs)
+        assert system("ruby", aibika, File.expand_path("../helloworld.rb"), *DefaultArgs)
         assert File.exist?("helloworld.exe")
         pristine_env "helloworld.exe" do
           assert system("helloworld.exe")
@@ -639,7 +639,7 @@ class TestOcra < Minitest::Test
 
   def test_relpath
     with_fixture "helloworld" do
-      assert system("ruby", ocra, "./helloworld.rb", *DefaultArgs)
+      assert system("ruby", aibika, "./helloworld.rb", *DefaultArgs)
       assert File.exist?("helloworld.exe")
       pristine_env "helloworld.exe" do
         assert system("helloworld.exe")
@@ -651,7 +651,7 @@ class TestOcra < Minitest::Test
     with_fixture "helloworld" do
       mkdir "build"
       cd "build" do
-        assert system("ruby", ocra, "../helloworld.rb", *DefaultArgs)
+        assert system("ruby", aibika, "../helloworld.rb", *DefaultArgs)
         assert File.exist?("helloworld.exe")
         pristine_env "helloworld.exe" do
           assert system("helloworld.exe")
@@ -663,7 +663,7 @@ class TestOcra < Minitest::Test
   # Should accept hierachical source code layout
   def test_srcroot
     with_fixture "srcroot" do
-      assert system("ruby", ocra, "bin/srcroot.rb", "share/data.txt", *DefaultArgs)
+      assert system("ruby", aibika, "bin/srcroot.rb", "share/data.txt", *DefaultArgs)
       assert File.exist?("srcroot.exe")
       pristine_env "srcroot.exe" do
         exe = File.expand_path("srcroot.exe")
@@ -677,7 +677,7 @@ class TestOcra < Minitest::Test
   # Should be able to build executables when script changes directory.
   def test_chdir
     with_fixture "chdir" do
-      assert system("ruby", ocra, "chdir.rb", *DefaultArgs)
+      assert system("ruby", aibika, "chdir.rb", *DefaultArgs)
       assert File.exist?("chdir.exe")
       pristine_env "chdir.exe" do
         exe = File.expand_path("chdir.exe")
@@ -692,14 +692,14 @@ class TestOcra < Minitest::Test
   def test_chdir_first
     with_fixture 'writefile' do
       # Control test; make sure the writefile script works as expected under default options
-      assert system("ruby", ocra, "writefile.rb", *(DefaultArgs))
+      assert system("ruby", aibika, "writefile.rb", *(DefaultArgs))
       pristine_env "writefile.exe" do
         assert !File.exist?("output.txt")
         assert system("writefile.exe")
         assert File.exist?("output.txt")
       end
 
-      assert system("ruby", ocra, "writefile.rb", *(DefaultArgs + ["--chdir-first"]))
+      assert system("ruby", aibika, "writefile.rb", *(DefaultArgs + ["--chdir-first"]))
       pristine_env "writefile.exe" do
         assert !File.exist?("output.txt")
         assert system("writefile.exe")
@@ -709,12 +709,12 @@ class TestOcra < Minitest::Test
     end
   end
 
-  # Would be nice if OCRA could build from source located beneath the
+  # Would be nice if AIBIKA could build from source located beneath the
   # Ruby installation too.
   def test_exec_prefix
-    path = File.join(RbConfig::CONFIG["exec_prefix"], "ocratempsrc")
+    path = File.join(RbConfig::CONFIG["exec_prefix"], "aibikatempsrc")
     with_fixture "helloworld", path do
-      assert system("ruby", ocra, "helloworld.rb", *DefaultArgs)
+      assert system("ruby", aibika, "helloworld.rb", *DefaultArgs)
       assert File.exist?("helloworld.exe")
       pristine_env "helloworld.exe" do
         assert system("helloworld.exe")
@@ -728,7 +728,7 @@ class TestOcra < Minitest::Test
     number_of_files = Dir[path].size
     assert number_of_files > 3
     with_fixture "check_includes" do
-      assert system("ruby", ocra, "check_includes.rb", path, *DefaultArgs)
+      assert system("ruby", aibika, "check_includes.rb", path, *DefaultArgs)
       assert File.exist?("check_includes.exe")
       pristine_env "check_includes.exe" do
         assert system("check_includes.exe", number_of_files.to_s)
@@ -739,7 +739,7 @@ class TestOcra < Minitest::Test
   # Hello world test. Test that we can build and run executables.
   def test_nonexistent_temp
     with_fixture 'helloworld' do
-      assert system("ruby", ocra, "helloworld.rb", *DefaultArgs)
+      assert system("ruby", aibika, "helloworld.rb", *DefaultArgs)
       assert File.exist?("helloworld.exe")
       pristine_env "helloworld.exe" do
         with_env "TEMP" => "c:\\thispathdoesnotexist12345", "TMP" => "c:\\thispathdoesnotexist12345" do
