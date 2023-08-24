@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-SomeConst = 12_312
+SOME_CONST = 12_312

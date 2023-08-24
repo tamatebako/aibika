@@ -1,4 +1,4 @@
-name: test
+name: build-and-test
 
 on:
   push:
@@ -28,10 +28,12 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
-        bundler-cache: true
+        bundler-cache: false
 
     - name: Build and test with Rake
-      run: bundle exec rake
+      run: |
+        bundle install
+        rake test
 
 # ----- Release -----
   release:

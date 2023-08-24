@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-OtherConst = 43_212
+OTHER_CONST = 43_212
