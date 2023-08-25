@@ -45,7 +45,7 @@ jobs:
   release:
     name: Release gem
     needs: [ build ]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: contains(github.ref, 'refs/tags/v') && !contains(github.ref, 'pre')
     steps:
     - uses: actions/checkout@v3
