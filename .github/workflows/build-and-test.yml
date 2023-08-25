@@ -6,7 +6,13 @@ on:
       - main
     tags:
       - 'v*'
+    paths-ignore:
+      - '**.adoc'
+      - '**.txt'
   pull_request:
+    paths-ignore:
+      - '**.adoc'
+      - '**.txt'
   workflow_dispatch:
 
 concurrency:

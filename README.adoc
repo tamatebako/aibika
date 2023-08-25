@@ -54,6 +54,12 @@ gem install aibika
 // https://github.com/tamatebako/aibika/releases/
 // Requires nothing but a working Ruby installation on Windows.
 
+== Migration from Ocra
+
+Aibika 1.3.12 is fully compatible with Ocra 1.13.11
+In order to migrate your build scripts replace ocra invokations with aibika.
+
+Aibika only supports Windows.
 
 == Synopsis
 
