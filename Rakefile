@@ -22,6 +22,7 @@ file 'share/aibika/stubw.exe' => :build_stub
 file 'share/aibika/edicon.exe' => :build_stub
 
 task test: :build_stub
+task build: :build_stub
 
 task :clean do
   rm_f Dir['{bin,samples}/*.exe']

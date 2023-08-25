@@ -103,7 +103,7 @@ module Aibika
   end
 
   # Returns a binary blob store embedded in the current Ruby script.
-  def self.get_next_embedded_image
+  def self.next_embedded_image
     DATA.read(DATA.readline.to_i).unpack1('m')
   end
 
@@ -122,12 +122,12 @@ module Aibika
 
   def self.find_stubs
     if defined?(DATA)
-      @stubimage = get_next_embedded_image
-      @stubwimage = get_next_embedded_image
-      lzmaimage = get_next_embedded_image
+      @stubimage = next_embedded_image
+      @stubwimage = next_embedded_image
+      lzmaimage = next_embedded_image
       @lzmapath = Host.tempdir / 'lzma.exe'
       File.open(@lzmapath, 'wb') { |file| file << lzmaimage }
-      ediconimage = get_next_embedded_image
+      ediconimage = next_embedded_image
       @ediconpath = Host.tempdir / 'edicon.exe'
       File.open(@ediconpath, 'wb') { |file| file << ediconimage }
     else
