@@ -32,6 +32,7 @@ Gem::Specification.new do |spec|
         f.match(%r{\A(?:(?:test)/|\.(?:git|cirrus|autotest|rubocop))})
     end
   end
+  spec.files << Dir.glob('share/ocran/**')
   spec.bindir = 'bin'
   spec.executables = spec.files.grep(%r{\Abin/}) { |f| File.basename(f) }
   spec.require_paths = %w[bin lib samples share src]
