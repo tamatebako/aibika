@@ -35,5 +35,5 @@ Gem::Specification.new do |spec|
   spec.files += Dir.glob('share/aibika/**')
   spec.bindir = 'bin'
   spec.executables = spec.files.grep(%r{\Abin/}) { |f| File.basename(f) }
-  spec.require_paths = %w[bin lib samples share src]
+  spec.require_paths = %w[lib]
 end
