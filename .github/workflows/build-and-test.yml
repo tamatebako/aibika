@@ -45,14 +45,17 @@ jobs:
   release:
     name: Release gem
     needs: [ build ]
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     if: contains(github.ref, 'refs/tags/v') && !contains(github.ref, 'pre')
     steps:
     - uses: actions/checkout@v3
-      with:
-        fetch-depth: 1
-        submodules: true
 
-    - uses: cadwallion/publish-rubygems-action@master
-      env:
-        RUBYGEMS_API_KEY: ${{secrets.TEBAKO_CI_RUBYGEMS_API_KEY}}
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.1
+        bundler-cache: true
+
+    - uses: actions-mn/gem-release@main
+      with:
+        api-key: ${{ secrets.TEBAKO_CI_RUBYGEMS_API_KEY }}
+        release-command: bundle exec rake release
