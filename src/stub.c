@@ -25,33 +25,38 @@ const BYTE Signature[] = { 0x41, 0xb6, 0xba, 0x4e };
 
 /** Manages digital signatures **/
 
-/* see https://en.wikipedia.org/wiki/Portable_Executable for explanation of these header fields */
+// Some usefule references:
+// https://en.wikipedia.org/wiki/Portable_Executable for explanation of these header fields
+// https://stackoverflow.com/questions/84847/how-do-i-create-a-self-signed-certificate-for-code-signing-on-windows?rq=3
+// Command to sign:
+// signtool.exe sign /f selfsigncert.pfx /p password helloworld.exe
+
 #define SECURITY_ENTRY(header) ((header)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY])
 
-static LPVOID ocraSignatureLocation(LPVOID, DWORD);
-static PIMAGE_NT_HEADERS retrieveNTHeader(LPVOID);
-static char isDigitallySigned(LPVOID);
+static LPBYTE ocraSignatureLocation(LPBYTE, DWORD);
+static PIMAGE_NT_HEADERS retrieveNTHeader(LPBYTE ptr) ;
+static BOOL isDigitallySigned(PIMAGE_NT_HEADERS ntHeaders);
 /******************************/
 
-BOOL ProcessImage(LPVOID p, DWORD size);
-BOOL ProcessOpcodes(LPVOID* p);
+BOOL ProcessImage(LPBYTE p, DWORD size);
+BOOL ProcessOpcodes(LPBYTE* p);
 void CreateAndWaitForProcess(LPTSTR ApplicationName, LPTSTR CommandLine);
 
-BOOL OpEnd(LPVOID* p);
-BOOL OpCreateFile(LPVOID* p);
-BOOL OpCreateDirectory(LPVOID* p);
-BOOL OpCreateProcess(LPVOID* p);
-BOOL OpDecompressLzma(LPVOID* p);
-BOOL OpSetEnv(LPVOID* p);
-BOOL OpPostCreateProcess(LPVOID* p);
-BOOL OpEnableDebugMode(LPVOID* p);
-BOOL OpCreateInstDirectory(LPVOID* p);
+BOOL OpEnd(LPBYTE* p);
+BOOL OpCreateFile(LPBYTE* p);
+BOOL OpCreateDirectory(LPBYTE* p);
+BOOL OpCreateProcess(LPBYTE* p);
+BOOL OpDecompressLzma(LPBYTE* p);
+BOOL OpSetEnv(LPBYTE* p);
+BOOL OpPostCreateProcess(LPBYTE* p);
+BOOL OpEnableDebugMode(LPBYTE* p);
+BOOL OpCreateInstDirectory(LPBYTE* p);
 
 #if WITH_LZMA
 #include <LzmaDec.h>
 #endif
 
-typedef BOOL (*POpcodeHandler)(LPVOID*);
+typedef BOOL (*POpcodeHandler)(LPBYTE*);
 
 LPTSTR PostCreateProcess_ApplicationName = NULL;
 LPTSTR PostCreateProcess_CommandLine = NULL;
@@ -99,15 +104,15 @@ POpcodeHandler OpcodeHandlers[OP_MAX] =
 TCHAR InstDir[MAX_PATH];
 
 /** Decoder: Zero-terminated string */
-LPTSTR GetString(LPVOID* p)
+LPTSTR GetString(LPBYTE* p)
 {
-   LPTSTR str = *p;
+   LPTSTR str = *(LPTSTR*)p;
    *p += lstrlen(str) + sizeof(TCHAR);
    return str;
 }
 
 /** Decoder: 32 bit unsigned integer */
-DWORD GetInteger(LPVOID* p)
+DWORD GetInteger(LPBYTE* p)
 {
    DWORD dw = *(DWORD*)*p;
    *p += 4;
@@ -233,7 +238,7 @@ void DeleteOldFiles()
    FindClose(handle);
 }
 
-BOOL OpCreateInstDirectory(LPVOID* p)
+BOOL OpCreateInstDirectory(LPBYTE* p)
 {
    DWORD DebugExtractMode = GetInteger(p);
 
@@ -317,7 +322,7 @@ int CALLBACK _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
    }
 
    /* Map the image into memory */
-   LPVOID lpv = MapViewOfFile(hMem, FILE_MAP_READ, 0, 0, 0);
+   LPBYTE lpv = MapViewOfFile(hMem, FILE_MAP_READ, 0, 0, 0);
    if (lpv == NULL)
    {
       FATAL("Failed to map view of executable into memory (error %lu).", GetLastError());
@@ -377,33 +382,46 @@ int CALLBACK _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
    return 0;
 }
 
-/* The NTHeader is another name for the PE header. It is the 'modern' executable header
-   as opposed to the DOS_HEADER which exists for legacy reasons */
-static PIMAGE_NT_HEADERS retrieveNTHeader(LPVOID ptr) {
-  PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)ptr;
-
+static PIMAGE_NT_HEADERS retrieveNTHeader(LPBYTE ptr)
+{
+   PIMAGE_NT_HEADERS ret = NULL;
+   PIMAGE_DOS_HEADER dosHeader = (PIMAGE_DOS_HEADER)ptr;
+   if (dosHeader->e_magic != 0x5a4d) {
+      FATAL("Invalid DOS signature: %x, 0x5a4d expected", dosHeader->e_magic);
+   }
+   else {
+      PIMAGE_NT_HEADERS ntHeader = (PIMAGE_NT_HEADERS)(ptr + dosHeader->e_lfanew);
+      if (ntHeader->Signature != 0x4550) {
+         FATAL("Invalid PE signature: %lx, 0x4550 expected", ntHeader->Signature);
+      }
+      else {
+         ret = ntHeader;
+      }
+   }
   /* e_lfanew is an RVA (relative virtual address, i.e offset) to the NTHeader
    to get a usable pointer we add the RVA to the base address */
-  return (PIMAGE_NT_HEADERS)((DWORD)dosHeader + (DWORD)dosHeader->e_lfanew);
+   return ret;
 }
 
 /* Check whether there's an embedded digital signature */
-static char isDigitallySigned(LPVOID ptr) {
-  PIMAGE_NT_HEADERS ntHeader = retrieveNTHeader(ptr);
+static BOOL isDigitallySigned(PIMAGE_NT_HEADERS ntHeader) {
   return SECURITY_ENTRY(ntHeader).Size != 0;
 }
 
 /* Find the location of ocra's signature
    NOTE: *not* the same as the digital signature from code signing
 */
-static LPVOID ocraSignatureLocation(LPVOID ptr, DWORD size) {
-  if (!isDigitallySigned(ptr)) {
-    return ptr + size - 4;
-  }
-  else {
-    PIMAGE_NT_HEADERS ntHeader = retrieveNTHeader(ptr);
-    DWORD offset = SECURITY_ENTRY(ntHeader).VirtualAddress - 1;
-    char* searchPtr = (char *)ptr;
+static LPBYTE ocraSignatureLocation(LPBYTE ptr, DWORD size)
+{
+   LPBYTE ret = NULL;
+   PIMAGE_NT_HEADERS ntHeader = retrieveNTHeader(ptr);
+   if (ntHeader) {
+      if (!isDigitallySigned(ntHeader)) {
+         ret = ptr + size - 4;
+      }
+      else {
+         DWORD offset = SECURITY_ENTRY(ntHeader).VirtualAddress - 1;
+         LPBYTE searchPtr = ptr;
 
     /* There is unfortunately a 'buffer' of null bytes between the
        ocraSignature and the digital signature. This buffer appears to be random
@@ -411,40 +429,47 @@ static LPVOID ocraSignatureLocation(LPVOID ptr, DWORD size) {
        for the first non-null byte.
        NOTE: this means that the hard-coded Ocra signature cannot end with a null byte.
     */
-    while(!searchPtr[offset])
-      offset--;
+         while(!searchPtr[offset])
+            offset--;
 
     /* -3 cos we're already at the first byte and we need to go back 4 bytes */
-    return (LPVOID)&searchPtr[offset - 3];
-  }
+         ret = searchPtr + offset - 3;
+      }
+   }
+   return ret;
 }
 
 /**
    Process the image by checking the signature and locating the first
    opcode.
 */
-BOOL ProcessImage(LPVOID ptr, DWORD size)
+BOOL ProcessImage(LPBYTE ptr, DWORD size)
 {
-   LPVOID pSig = ocraSignatureLocation(ptr, size);
-
-   if (memcmp(pSig, Signature, 4) == 0)
-   {
-      DEBUG("Good signature found.");
-      DWORD OpcodeOffset = *(DWORD*)(pSig - 4);
-      LPVOID pSeg = ptr + OpcodeOffset;
-      return ProcessOpcodes(&pSeg);
+   BOOL ret = FALSE;
+   LPBYTE pSig = ocraSignatureLocation(ptr, size);
+   if (pSig) {
+      if (memcmp(pSig, Signature, 4) == 0)
+      {
+         DEBUG("Good signature found.");
+         DWORD OpcodeOffset = *(DWORD*)(pSig - 4);
+         LPBYTE pSeg = ptr + OpcodeOffset;
+         ret = ProcessOpcodes(&pSeg);
+      }
+      else
+      {
+         FATAL("Bad signature in executable.");
+      }
    }
-   else
-   {
-      FATAL("Bad signature in executable.");
-      return FALSE;
+   else {
+         FATAL("No signature in executable.");
    }
+   return ret;
 }
 
 /**
    Process the opcodes in memory.
 */
-BOOL ProcessOpcodes(LPVOID* p)
+BOOL ProcessOpcodes(LPBYTE* p)
 {
    while (!ExitCondition)
    {
@@ -520,12 +545,12 @@ LPTSTR SkipArg(LPTSTR str)
 /**
    Create a file (OP_CREATE_FILE opcode handler)
 */
-BOOL OpCreateFile(LPVOID* p)
+BOOL OpCreateFile(LPBYTE* p)
 {
    BOOL Result = TRUE;
    LPTSTR FileName = GetString(p);
    DWORD FileSize = GetInteger(p);
-   LPVOID Data = *p;
+   LPBYTE Data = *p;
    *p += FileSize;
 
    TCHAR Fn[MAX_PATH];
@@ -562,7 +587,7 @@ BOOL OpCreateFile(LPVOID* p)
 /**
    Create a directory (OP_CREATE_DIRECTORY opcode handler)
 */
-BOOL OpCreateDirectory(LPVOID* p)
+BOOL OpCreateDirectory(LPBYTE* p)
 {
    LPTSTR DirectoryName = GetString(p);
 
@@ -589,7 +614,7 @@ BOOL OpCreateDirectory(LPVOID* p)
    return TRUE;
 }
 
-void GetCreateProcessInfo(LPVOID* p, LPTSTR* pApplicationName, LPTSTR* pCommandLine)
+void GetCreateProcessInfo(LPBYTE* p, LPTSTR* pApplicationName, LPTSTR* pCommandLine)
 {
    LPTSTR ImageName = GetString(p);
    LPTSTR CmdLine = GetString(p);
@@ -614,7 +639,7 @@ void GetCreateProcessInfo(LPVOID* p, LPTSTR* pApplicationName, LPTSTR* pCommandL
    Create a new process and wait for it to complete (OP_CREATE_PROCESS
    opcode handler)
 */
-BOOL OpCreateProcess(LPVOID* p)
+BOOL OpCreateProcess(LPBYTE* p)
 {
    LPTSTR ApplicationName;
    LPTSTR CommandLine;
@@ -655,7 +680,7 @@ void CreateAndWaitForProcess(LPTSTR ApplicationName, LPTSTR CommandLine)
  * Sets up a process to be created after all other opcodes have been processed. This can be used to create processes
  * after the temporary files have all been created and memory has been freed.
  */
-BOOL OpPostCreateProcess(LPVOID* p)
+BOOL OpPostCreateProcess(LPBYTE* p)
 {
    DEBUG("PostCreateProcess");
    if (PostCreateProcess_ApplicationName || PostCreateProcess_CommandLine)
@@ -669,7 +694,7 @@ BOOL OpPostCreateProcess(LPVOID* p)
    }
 }
 
-BOOL OpEnableDebugMode(LPVOID* p)
+BOOL OpEnableDebugMode(LPBYTE* p)
 {
    DebugModeEnabled = TRUE;
    DEBUG("Aibika stub running in debug mode");
@@ -684,7 +709,7 @@ ISzAlloc alloc = { SzAlloc, SzFree };
 #define LZMA_UNPACKSIZE_SIZE 8
 #define LZMA_HEADER_SIZE (LZMA_PROPS_SIZE + LZMA_UNPACKSIZE_SIZE)
 
-BOOL OpDecompressLzma(LPVOID* p)
+BOOL OpDecompressLzma(LPBYTE* p)
 {
    BOOL Success = TRUE;
 
@@ -715,7 +740,7 @@ BOOL OpDecompressLzma(LPVOID* p)
    }
    else
    {
-      LPVOID decPtr = DecompressedData;
+      LPBYTE decPtr = DecompressedData;
       if (!ProcessOpcodes(&decPtr))
       {
          Success = FALSE;
@@ -727,13 +752,13 @@ BOOL OpDecompressLzma(LPVOID* p)
 }
 #endif
 
-BOOL OpEnd(LPVOID* p)
+BOOL OpEnd(LPBYTE* p)
 {
    ExitCondition = TRUE;
    return TRUE;
 }
 
-BOOL OpSetEnv(LPVOID* p)
+BOOL OpSetEnv(LPBYTE* p)
 {
    LPTSTR Name = GetString(p);
    LPTSTR Value = GetString(p);
