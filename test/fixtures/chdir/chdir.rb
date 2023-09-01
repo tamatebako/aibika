@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-Dir.chdir ENV['SystemRoot']
+Dir.chdir ENV.fetch('SystemRoot', nil)

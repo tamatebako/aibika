@@ -36,4 +36,5 @@ Gem::Specification.new do |spec|
   spec.bindir = 'bin'
   spec.executables = spec.files.grep(%r{\Abin/}) { |f| File.basename(f) }
   spec.require_paths = %w[lib]
+  spec.metadata['rubygems_mfa_required'] = 'true'
 end

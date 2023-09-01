@@ -33,7 +33,7 @@ module Aibika
       end
 
       def tempdir
-        @tempdir ||= Aibika.Pathname(ENV['TEMP'])
+        @tempdir ||= Aibika.Pathname(ENV.fetch('TEMP', nil))
       end
     end
   end

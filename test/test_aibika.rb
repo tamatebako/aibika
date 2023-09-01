@@ -7,8 +7,7 @@ require 'tmpdir'
 require 'fileutils'
 require 'rbconfig'
 require 'pathname'
-
-require File.join(File.dirname(__FILE__), "fake_code_signer")
+require 'open3'
 
 begin
   require 'rubygems'
@@ -40,13 +39,26 @@ class TestAibika < Minitest::Test
   # the block, then cleans up.
   def pristine_env(*files, &block)
     with_tmpdir files do
-      with_env 'PATH' => "#{ENV['SystemRoot']};#{ENV['SystemRoot']}\\SYSTEM32", &block
+      with_env 'PATH' => "#{ENV.fetch('SystemRoot', nil)};#{ENV.fetch('SystemRoot', nil)}\\SYSTEM32", &block
     end
   end
 
   def system(*args)
     puts args.join(' ') if ENV['AIBIKA_VERBOSE_TEST']
     Kernel.system(*args)
+  end
+
+  # Cross-platform way of finding an executable in the $PATH.
+  # which('ruby') => /usr/bin/ruby
+  def which(cmd)
+    exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+    ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+      exts.each do |ext|
+        exe = File.join(path, "#{cmd}#{ext}")
+        return exe if File.executable?(exe) && !File.directory?(exe)
+      end
+    end
+    nil
   end
 
   attr_reader :aibika
@@ -75,7 +87,7 @@ class TestAibika < Minitest::Test
   def with_env(hash)
     old = {}
     hash.each do |k, v|
-      old[k] = ENV[k]
+      old[k] = ENV.fetch(k, nil)
       ENV[k] = v
     end
     begin
@@ -88,7 +100,7 @@ class TestAibika < Minitest::Test
   end
 
   def with_tmpdir(files = [], path = nil, &block)
-    tempdirname = path || File.join(ENV['TEMP'], ".aibikatest-#{$PROCESS_ID}-#{rand 2**32}").tr('\\', '/')
+    tempdirname = path || File.join(ENV.fetch('TEMP', nil), ".aibikatest-#{$PROCESS_ID}-#{rand 2**32}").tr('\\', '/')
     mkdir_p tempdirname
     begin
       cp files, tempdirname
@@ -558,7 +570,7 @@ class TestAibika < Minitest::Test
         assert system('ruby', aibika, 'environment.rb', *DefaultArgs)
         pristine_env 'environment.exe' do
           assert system('environment.exe')
-          env = Marshal.load(File.open('environment', 'rb', &:read))
+          env = Marshal.load(File.binread('environment'))
           assert_equal '-rtime', env['RUBYOPT']
         end
       end
@@ -580,7 +592,7 @@ class TestAibika < Minitest::Test
       assert system('ruby', aibika, 'environment.rb', *DefaultArgs)
       pristine_env 'environment.exe' do
         assert system('environment.exe')
-        env = Marshal.load(File.open('environment', 'rb', &:read))
+        env = Marshal.load(File.binread('environment'))
         expected_path = File.expand_path('environment.exe').tr('/', '\\')
         assert_equal expected_path, env['AIBIKA_EXECUTABLE']
       end
@@ -667,7 +679,7 @@ class TestAibika < Minitest::Test
       assert File.exist?('srcroot.exe')
       pristine_env 'srcroot.exe' do
         exe = File.expand_path('srcroot.exe')
-        cd ENV['SystemRoot'] do
+        cd ENV.fetch('SystemRoot', nil) do
           assert system(exe)
         end
       end
@@ -681,7 +693,7 @@ class TestAibika < Minitest::Test
       assert File.exist?('chdir.exe')
       pristine_env 'chdir.exe' do
         exe = File.expand_path('chdir.exe')
-        cd ENV['SystemRoot'] do
+        cd ENV.fetch('SystemRoot', nil) do
           assert system(exe)
         end
       end
@@ -748,6 +760,23 @@ class TestAibika < Minitest::Test
           system('helloworld.exe 2>NUL')
           assert File.exist?('helloworld.exe')
         end
+      end
+    end
+  end
+
+  # Test that code-signed executables still work
+  def test_codesigning_support
+    signtool = which('signtool')
+    assert !signtool.nil?, "signtool not found in PATH, cannot test code signing compatibility"
+
+    with_fixture 'helloworld' do
+      assert system('ruby', aibika, 'helloworld.rb', *DefaultArgs)
+      assert File.exist?('helloworld.exe')
+      assert system("signtool sign /f #{File.join(__dir__, 'selfsign', 'selfsigncert.pfx')} /p password helloworld.exe")
+      pristine_env 'helloworld.exe' do
+        assert system('helloworld.exe')
+        out, _st = Open3.capture2e(signtool, 'verify', '/v', 'helloworld.exe')
+        assert_match(/SHA1 hash: 900E46CB0D18D314778F7156FBBC74B1484B4EDB/, out)
       end
     end
   end

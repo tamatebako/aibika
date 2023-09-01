@@ -157,7 +157,7 @@ module Aibika
       src = Aibika.Pathname(src)
       tgt = Aibika.Pathname(tgt)
       ensuremkdir(tgt.dirname)
-      str = File.open(src, 'rb', &:read)
+      str = File.binread(src)
       Aibika.verbose_msg "a #{showtempdir tgt}"
       return if Aibika.inno_script # InnoSetup will install the file with a [Files] statement
 

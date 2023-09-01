@@ -2,7 +2,7 @@
 *.exe
 pkg
 README.txt
-ocrasa-*.zip
+aibikasa-*.zip
 .vscode/
 
 Gemfile.lock
