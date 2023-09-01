@@ -1,7 +1,3 @@
 # frozen_string_literal: true
 
-if $PROGRAM_NAME == __FILE__
-  File.open('environment', 'wb') do |f|
-    f.write(Marshal.dump(ENV.to_hash))
-  end
-end
+File.binwrite('environment', Marshal.dump(ENV.to_hash)) if $PROGRAM_NAME == __FILE__

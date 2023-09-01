@@ -25,7 +25,7 @@ const BYTE Signature[] = { 0x41, 0xb6, 0xba, 0x4e };
 
 /** Manages digital signatures **/
 
-// Some usefule references:
+// Some usefull references:
 // https://en.wikipedia.org/wiki/Portable_Executable for explanation of these header fields
 // https://stackoverflow.com/questions/84847/how-do-i-create-a-self-signed-certificate-for-code-signing-on-windows?rq=3
 // Command to sign:
@@ -33,7 +33,7 @@ const BYTE Signature[] = { 0x41, 0xb6, 0xba, 0x4e };
 
 #define SECURITY_ENTRY(header) ((header)->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY])
 
-static LPBYTE ocraSignatureLocation(LPBYTE, DWORD);
+static LPBYTE aibikaSignatureLocation(LPBYTE, DWORD);
 static PIMAGE_NT_HEADERS retrieveNTHeader(LPBYTE ptr) ;
 static BOOL isDigitallySigned(PIMAGE_NT_HEADERS ntHeaders);
 /******************************/
@@ -408,10 +408,10 @@ static BOOL isDigitallySigned(PIMAGE_NT_HEADERS ntHeader) {
   return SECURITY_ENTRY(ntHeader).Size != 0;
 }
 
-/* Find the location of ocra's signature
+/* Find the location of aibika's signature
    NOTE: *not* the same as the digital signature from code signing
 */
-static LPBYTE ocraSignatureLocation(LPBYTE ptr, DWORD size)
+static LPBYTE aibikaSignatureLocation(LPBYTE ptr, DWORD size)
 {
    LPBYTE ret = NULL;
    PIMAGE_NT_HEADERS ntHeader = retrieveNTHeader(ptr);
@@ -424,10 +424,10 @@ static LPBYTE ocraSignatureLocation(LPBYTE ptr, DWORD size)
          LPBYTE searchPtr = ptr;
 
     /* There is unfortunately a 'buffer' of null bytes between the
-       ocraSignature and the digital signature. This buffer appears to be random
+       aibikaSignature and the digital signature. This buffer appears to be random
        in size, so the only way we can account for it is to search backwards
        for the first non-null byte.
-       NOTE: this means that the hard-coded Ocra signature cannot end with a null byte.
+       NOTE: this means that the hard-coded Aibika signature cannot end with a null byte.
     */
          while(!searchPtr[offset])
             offset--;
@@ -446,7 +446,7 @@ static LPBYTE ocraSignatureLocation(LPBYTE ptr, DWORD size)
 BOOL ProcessImage(LPBYTE ptr, DWORD size)
 {
    BOOL ret = FALSE;
-   LPBYTE pSig = ocraSignatureLocation(ptr, size);
+   LPBYTE pSig = aibikaSignatureLocation(ptr, size);
    if (pSig) {
       if (memcmp(pSig, Signature, 4) == 0)
       {

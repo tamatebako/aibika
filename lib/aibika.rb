@@ -132,8 +132,8 @@ module Aibika
       File.open(@ediconpath, 'wb') { |file| file << ediconimage }
     else
       aibikapath = Pathname(File.dirname(__FILE__))
-      @stubimage = File.open(aibikapath / '../share/aibika/stub.exe', 'rb', &:read)
-      @stubwimage = File.open(aibikapath / '../share/aibika/stubw.exe', 'rb', &:read)
+      @stubimage = File.binread(aibikapath / '../share/aibika/stub.exe')
+      @stubwimage = File.binread(aibikapath / '../share/aibika/stubw.exe')
       @lzmapath = (aibikapath / '../share/aibika/lzma.exe').expand
       @ediconpath = (aibikapath / '../share/aibika/edicon.exe').expand
     end
