@@ -106,7 +106,7 @@ Packaging options:
 --no-enc           Exclude encoding support files
 --allow-self       Include self (aibika gem) if detected or specified
         This option is required only if aibika gem is deployed as a part
-        of broader bundled your solution
+        of broader bundled solution
 ----
 
 Gem content detection modes:
@@ -210,10 +210,10 @@ Executable options:
 * Working Ruby installation
 * MinGW Installation
 
-=== Stand-alone version
+== Aibika examples available at https://tebako.org[a tebako blog]
 
-Get aibikasa.rb from http://rubyforge.org/frs/?group_id=8185. Requires
-nothing but a working Ruby installation on Windows.
+* https://www.tebako.org/blog/2023-08-24-introducing-aibika-and-ocra[Single-file packaging]
+* https://www.tebako.org/blog/2023-08-24-introducing-aibika-and-ocra[Packaging with Gemfile]
 
 == Technical details
 
