@@ -45,7 +45,6 @@ jobs:
 
     - name: Build and test with Rake
       run: |
-        ls test/selfsign
         bundle install
         rake test
 
