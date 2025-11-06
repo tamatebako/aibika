@@ -772,6 +772,8 @@ class TestAibika < Minitest::Test
     with_fixture 'helloworld' do
       assert system('ruby', aibika, 'helloworld.rb', *DefaultArgs)
       assert File.exist?('helloworld.exe')
+      puts "Signing helloworld.exe with selfsigncert.pfx"
+      puts "signtool sign /f #{File.join(__dir__, 'selfsign', 'selfsigncert.pfx')} /p password helloworld.exe"
       assert system("signtool sign /f #{File.join(__dir__, 'selfsign', 'selfsigncert.pfx')} /p password helloworld.exe")
       pristine_env 'helloworld.exe' do
         assert system('helloworld.exe')
