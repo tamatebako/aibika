@@ -661,7 +661,7 @@ module Aibika
       sb.setenv('GEM_PATH', (TEMPDIR_ROOT / GEMHOMEDIR).to_native)
 
       # Add the opcode to launch the script
-      extra_arg = Aibika.arg.map { |arg| " \"#{arg.gsub('"', '\"')}\"" }.join
+      extra_arg = Aibika.arg.map { |arg| " \"#{arg.gsub('\\', '\\\\').gsub('"', '\"')}\"" }.join
       installed_ruby_exe = TEMPDIR_ROOT / BINDIR / rubyexe
       launch_script = (TEMPDIR_ROOT / target_script).to_native
       sb.postcreateprocess(installed_ruby_exe,
